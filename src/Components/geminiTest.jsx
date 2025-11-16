@@ -11,7 +11,7 @@ const GeminiAPITester = () => {
   const testServerConnection = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/', {
+      const response = await fetch('https://meeting-backend-glfz.onrender.com/', {
         method: 'GET'
       });
       
@@ -44,7 +44,7 @@ const GeminiAPITester = () => {
   const testAPIKeyConfig = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/test-gemini', {
+      const response = await fetch('https://meeting-backend-glfz.onrender.com/api/test-gemini', {
         method: 'GET'
       });
       
@@ -73,7 +73,7 @@ const GeminiAPITester = () => {
     setTestResult(null);
     
     try {
-      const response = await fetch('http://localhost:3001/api/chatbot', {
+      const response = await fetch('https://meeting-backend-glfz.onrender.com/api/chatbot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ const GeminiAPITester = () => {
 [10:31:15] Sarah: We can start testing next Monday if everyone is available.`;
 
     try {
-      const response = await fetch('http://localhost:3001/api/summarize-transcript', {
+      const response = await fetch('https://meeting-backend-glfz.onrender.com/api/summarize-transcript', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

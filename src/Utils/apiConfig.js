@@ -4,7 +4,7 @@
 const getAPIBaseURL = () => {
   // Check localStorage for configured backend URL
   const configuredBackend = localStorage.getItem('VITE_API_URL');
-  return configuredBackend || 'http://localhost:3001';
+  return configuredBackend || 'https://meeting-backend-glfz.onrender.com';
 };
 
 const API_BASE_URL = getAPIBaseURL();

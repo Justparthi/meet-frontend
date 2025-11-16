@@ -63,8 +63,8 @@ CLAUDE_API_KEY=your_claude_api_key_here
 Create a `.env` file in the root directory:
 ```env
 # API Configuration
-VITE_API_URL=http://localhost:3001
-VITE_SOCKET_URL=http://localhost:3001
+VITE_API_URL=https://meeting-backend-glfz.onrender.com
+VITE_SOCKET_URL=https://meeting-backend-glfz.onrender.com
 ```
 
 ### 4. Database Setup (Optional)
@@ -110,7 +110,7 @@ npm run dev
 ## 🌐 Accessing the Application
 
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3001
+- **Backend API**: https://meeting-backend-glfz.onrender.com
 - **Network Access**: Use your computer's IP address for other devices
 
 ## 📱 Mobile & Network Access

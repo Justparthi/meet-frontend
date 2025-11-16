@@ -1,6 +1,6 @@
 // Local development configuration
 export const config = {
-  API_BASE_URL: import.meta.env?.VITE_BACKEND_URL || "http://localhost:3001",
+  API_BASE_URL: import.meta.env?.VITE_BACKEND_URL || "https://meeting-backend-glfz.onrender.com",
   SOCKET_URL: (import.meta.env?.VITE_BACKEND_URL?.replace(/^http/, 'ws')) || "ws://localhost:3001"
 };
 
