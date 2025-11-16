@@ -1,60 +1,51 @@
 // src/polyfills.js
-// A more robust polyfill for Node.js APIs in browser and server environments.
+// A modern polyfill for browser environments.
+// This must be the first import in your app's entry point (e.g., main.jsx).
 
-// 1. Establish a global object reference.
-// This is necessary because the global object has different names in different JS environments.
-let globalObject;
-if (typeof globalThis !== 'undefined') {
-  globalObject = globalThis;
-} else if (typeof self !== 'undefined') {
-  globalObject = self;
-} else if (typeof window !== 'undefined') {
-  globalObject = window;
-} else if (typeof global !== 'undefined') {
-  globalObject = global;
-} else {
-  // A fallback in case no global object is found.
-  globalObject = {};
-}
+// 1. Establish a consistent global object reference.
+const globalObject =
+  typeof globalThis !== 'undefined'
+    ? globalThis
+    : typeof self !== 'undefined'
+    ? self
+    : typeof window !== 'undefined'
+    ? window
+    : {};
 
-// 2. Polyfill 'global' if it's missing. Some libraries expect it.
+// 2. Polyfill 'global' for libraries that expect it.
 if (typeof globalObject.global === 'undefined') {
   globalObject.global = globalObject;
 }
 
-// 3. Polyfill 'process' for browser environments.
-// Libraries like 'simple-peer' might use 'process.nextTick'.
+// 3. Polyfill 'Buffer' using the 'buffer' package.
+// The 'import' statement is handled by Vite to load the correct browser-compatible version.
+import { Buffer } from 'buffer/';
+if (typeof globalObject.Buffer === 'undefined') {
+  globalObject.Buffer = Buffer;
+}
+
+// 4. Polyfill 'process' for libraries like 'simple-peer'.
 if (typeof globalObject.process === 'undefined') {
   globalObject.process = {
     env: { NODE_ENV: 'production' },
     nextTick: (callback, ...args) => {
-      setTimeout(() => {
-        callback.apply(null, args);
-      }, 0);
+      setTimeout(() => callback.apply(null, args), 0);
     },
     browser: true,
   };
 }
 
-// 4. Polyfill 'Buffer' which is a Node.js API.
-if (typeof globalObject.Buffer === 'undefined') {
-  try {
-    const { Buffer } = require('buffer/');
-    globalObject.Buffer = Buffer;
-  } catch (e) {
-    console.error("Buffer polyfill failed.", e);
-  }
-}
-
 // 5. Handle the Fetch API `Request` object error.
-// The error 'Cannot destructure property 'Request' of 'undefined'' suggests that
-// some code is doing `const { Request } = globalThis` or similar, and `globalThis`
-// (or its equivalent) does not have a `Request` property in the Vercel build environment.
-// This ensures that if fetch is available, its related objects are also exposed on the global object.
+// In some build environments, `fetch` might exist, but its related globals
+// (`Request`, `Response`, `Headers`) might not be attached to the global object.
 if (globalObject.fetch && typeof globalObject.Request === 'undefined') {
-    globalObject.Request = globalObject.fetch.Request;
-    globalObject.Response = globalObject.fetch.Response;
-    globalObject.Headers = globalObject.fetch.Headers;
+    // In browsers, these are on `window` or `self`.
+    const source = typeof window !== 'undefined' ? window : (typeof self !== 'undefined' ? self : globalObject);
+    if (source.Request) {
+        globalObject.Request = source.Request;
+        globalObject.Response = source.Response;
+        globalObject.Headers = source.Headers;
+    }
 }
 
 console.log('✅ Polyfills loaded successfully');
