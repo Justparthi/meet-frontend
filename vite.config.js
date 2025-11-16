@@ -3,29 +3,27 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+
   define: {
-    global: 'globalThis',
+    global: 'globalThis'
   },
+
   resolve: {
     alias: {
-      process: 'process/browser',
-      buffer: 'buffer',
-      stream: 'stream-browserify',
-      util: 'util',
+      // ❗REMOVE Node polyfills unless 100% required
+      // simple-peer only needs 'global' shim which we already define above
     },
     dedupe: ['simple-peer']
   },
-  optimizeDeps: {
-    include: ['buffer', 'process', 'stream-browserify', 'util', 'simple-peer'],
-    force: true
-  },
+
   build: {
     commonjsOptions: {
       include: [/node_modules/, 'simple-peer']
     }
   },
+
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 5173
   }
 })
