@@ -1,8 +1,7 @@
 // src/polyfills.js
-// A modern polyfill for browser environments.
-// This must be the first import in your app's entry point (e.g., main.jsx).
+// This file MUST be the first import in your application's entry point.
 
-// 1. Establish a consistent global object reference.
+// 1. Establish a reliable global object reference.
 const globalObject =
   typeof globalThis !== 'undefined'
     ? globalThis
@@ -18,7 +17,6 @@ if (typeof globalObject.global === 'undefined') {
 }
 
 // 3. Polyfill 'Buffer' using the 'buffer' package.
-// The 'import' statement is handled by Vite to load the correct browser-compatible version.
 import { Buffer } from 'buffer/';
 if (typeof globalObject.Buffer === 'undefined') {
   globalObject.Buffer = Buffer;
@@ -35,17 +33,25 @@ if (typeof globalObject.process === 'undefined') {
   };
 }
 
-// 5. Handle the Fetch API `Request` object error.
-// In some build environments, `fetch` might exist, but its related globals
-// (`Request`, `Response`, `Headers`) might not be attached to the global object.
-if (globalObject.fetch && typeof globalObject.Request === 'undefined') {
-    // In browsers, these are on `window` or `self`.
-    const source = typeof window !== 'undefined' ? window : (typeof self !== 'undefined' ? self : globalObject);
-    if (source.Request) {
-        globalObject.Request = source.Request;
-        globalObject.Response = source.Response;
-        globalObject.Headers = source.Headers;
-    }
+// 5. Definitive polyfill for Fetch API globals.
+// This addresses the core issue where libraries expect these to be on the global object.
+// We explicitly check for their existence on the 'source' (window/self) and assign them to the global object.
+const source = typeof window !== 'undefined' ? window : (typeof self !== 'undefined' ? self : {});
+
+if (source.fetch && typeof globalObject.fetch === 'undefined') {
+    globalObject.fetch = source.fetch;
 }
 
-console.log('✅ Polyfills loaded successfully');
+if (source.Request && typeof globalObject.Request === 'undefined') {
+    globalObject.Request = source.Request;
+}
+
+if (source.Response && typeof globalObject.Response === 'undefined') {
+    globalObject.Response = source.Response;
+}
+
+if (source.Headers && typeof globalObject.Headers === 'undefined') {
+    globalObject.Headers = source.Headers;
+}
+
+console.log('✅ Polyfills loaded and configured successfully.');
