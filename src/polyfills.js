@@ -1,133 +1,60 @@
-// Comprehensive polyfills for Node.js APIs in browser environment
-// This file should be imported before any other modules that use Node.js APIs
+// src/polyfills.js
+// A more robust polyfill for Node.js APIs in browser and server environments.
 
-// Global polyfill
-// Ensure globalThis and web fetch APIs are accessible for libraries that do
-// const { Request, Response, Headers, fetch } = globalThis
-if (typeof globalThis === 'undefined') {
-  window.globalThis = window;
-}
-if (typeof window !== 'undefined') {
-  // Some bundlers/modules try to destructure from globalThis before these are set
-  const maybeCopy = (key) => {
-    if (typeof globalThis[key] === 'undefined' && typeof window[key] !== 'undefined') {
-      globalThis[key] = window[key];
-    }
-  };
-  maybeCopy('fetch');
-  maybeCopy('Request');
-  maybeCopy('Response');
-  maybeCopy('Headers');
-  if (typeof self === 'undefined') {
-    // Align with web worker environments that expect self
-    window.self = window;
-  }
-}
-if (typeof global === 'undefined') {
-  window.global = window;
+// 1. Establish a global object reference.
+// This is necessary because the global object has different names in different JS environments.
+let globalObject;
+if (typeof globalThis !== 'undefined') {
+  globalObject = globalThis;
+} else if (typeof self !== 'undefined') {
+  globalObject = self;
+} else if (typeof window !== 'undefined') {
+  globalObject = window;
+} else if (typeof global !== 'undefined') {
+  globalObject = global;
+} else {
+  // A fallback in case no global object is found.
+  globalObject = {};
 }
 
-// Process polyfill with nextTick
-if (typeof process === 'undefined') {
-  window.process = {
+// 2. Polyfill 'global' if it's missing. Some libraries expect it.
+if (typeof globalObject.global === 'undefined') {
+  globalObject.global = globalObject;
+}
+
+// 3. Polyfill 'process' for browser environments.
+// Libraries like 'simple-peer' might use 'process.nextTick'.
+if (typeof globalObject.process === 'undefined') {
+  globalObject.process = {
+    env: { NODE_ENV: 'production' },
     nextTick: (callback, ...args) => {
-      // Use setTimeout with 0 delay to simulate nextTick behavior
-      setTimeout(() => callback(...args), 0);
-    },
-    env: {
-      NODE_ENV: 'development'
+      setTimeout(() => {
+        callback.apply(null, args);
+      }, 0);
     },
     browser: true,
-    version: '',
-    versions: {}
   };
-} else {
-  // Ensure process.nextTick exists
-  if (typeof process.nextTick === 'undefined') {
-    process.nextTick = (callback, ...args) => {
-      setTimeout(() => callback(...args), 0);
-    };
-  }
-  
-  // Ensure process.env exists
-  if (!process.env) {
-    process.env = {
-      NODE_ENV: 'development'
-    };
+}
+
+// 4. Polyfill 'Buffer' which is a Node.js API.
+if (typeof globalObject.Buffer === 'undefined') {
+  try {
+    const { Buffer } = require('buffer/');
+    globalObject.Buffer = Buffer;
+  } catch (e) {
+    console.error("Buffer polyfill failed.", e);
   }
 }
 
-// Buffer polyfill
-if (typeof Buffer === 'undefined') {
-  try {
-    window.Buffer = require('buffer').Buffer;
-  } catch (e) {
-    // Fallback Buffer implementation
-    window.Buffer = class Buffer {
-      constructor(data, encoding) {
-        this.data = data;
-        this.encoding = encoding;
-      }
-      
-      static from(data, encoding) {
-        return new Buffer(data, encoding);
-      }
-      
-      toString(encoding) {
-        return String(this.data);
-      }
-    };
-  }
-}
-
-// Stream polyfill
-if (typeof require !== 'undefined') {
-  try {
-    // Try to require stream polyfill
-    const { Readable } = require('stream-browserify');
-    if (typeof window !== 'undefined') {
-      window.Readable = Readable;
-    }
-  } catch (e) {
-    console.warn('Stream polyfill not available:', e.message);
-  }
-}
-
-// Util polyfill
-if (typeof require !== 'undefined') {
-  try {
-    const util = require('util');
-    if (typeof window !== 'undefined') {
-      window.util = util;
-    }
-  } catch (e) {
-    console.warn('Util polyfill not available:', e.message);
-    // Fallback util implementation
-    window.util = {
-      inspect: (obj) => JSON.stringify(obj, null, 2),
-      debuglog: () => () => {},
-      format: (format, ...args) => {
-        return format.replace(/%[sdj%]/g, (match) => {
-          if (match === '%%') return '%';
-          const arg = args.shift();
-          return String(arg);
-        });
-      }
-    };
-  }
-} else {
-  // Browser fallback util implementation
-  window.util = {
-    inspect: (obj) => JSON.stringify(obj, null, 2),
-    debuglog: () => () => {},
-    format: (format, ...args) => {
-      return format.replace(/%[sdj%]/g, (match) => {
-        if (match === '%%') return '%';
-        const arg = args.shift();
-        return String(arg);
-      });
-    }
-  };
+// 5. Handle the Fetch API `Request` object error.
+// The error 'Cannot destructure property 'Request' of 'undefined'' suggests that
+// some code is doing `const { Request } = globalThis` or similar, and `globalThis`
+// (or its equivalent) does not have a `Request` property in the Vercel build environment.
+// This ensures that if fetch is available, its related objects are also exposed on the global object.
+if (globalObject.fetch && typeof globalObject.Request === 'undefined') {
+    globalObject.Request = globalObject.fetch.Request;
+    globalObject.Response = globalObject.fetch.Response;
+    globalObject.Headers = globalObject.fetch.Headers;
 }
 
 console.log('✅ Polyfills loaded successfully');
